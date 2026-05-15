@@ -94,3 +94,35 @@ See `update.md` for a short changelog and implementation notes.
 
 If you want, I can also help generate a concise English-only description for the GitHub repository page (short description), or add a license file. 
 如需，我还可以帮你生成适合放到仓库简介（short description）的英文短句，或添加许可证文件。
+
+---
+
+## Requirements / 依赖
+
+- Python 3.8+ is recommended. / 建议使用 Python 3.8 及以上。
+- The script depends on a few third-party packages which can be installed via pip.
+
+Install (recommended steps):
+
+```bash
+# create and activate virtualenv
+python -m venv .venv
+source .venv/bin/activate
+
+# install dependencies
+pip install -r requirements.txt
+```
+
+常用依赖说明：
+
+- `requests` : HTTP client for making requests
+- `beautifulsoup4` : HTML parsing (`bs4`)
+- `ddddocr` : OCR for verification codes
+
+安装示例（Windows PowerShell）：
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
