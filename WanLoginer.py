@@ -4,10 +4,12 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import ddddocr
+from typing import Optional
 
 ocr = ddddocr.DdddOcr(show_ad = False,beta=True)
 
 max_attempt = 5
+request_timeout = (5, 15)  # (connect timeout, read timeout), in seconds
 username = None
 password = None
 u_ips = []  # 支持多个IP
@@ -59,7 +61,10 @@ def set_user_config(username, password, u_ips):
 
 
 
-def AcquireInternet(validcode:str, u_ip:str) -> bool :
+def AcquireInternet(validcode: Optional[str], u_ip: str) -> bool:
+    if not validcode:
+        return False
+
     refer_url = url_prefix + "?ac-ip={acip}&uaddress={uip}&umac=null&authType=1&lang=zh_CN&ssid={sid}&pushPageId={pid}".format(acip=ac_ip, uip=u_ip, sid=ssid, pid=pushPageId)
     
     headers = {
@@ -101,17 +106,23 @@ def AcquireInternet(validcode:str, u_ip:str) -> bool :
     'dynamicRSAToken': '',
     'validCode': validcode,
     'userName': username,
-}
+    }
     try:
-        response = requests.post('https://net-auth.shanghaitech.edu.cn:19008/portalauth/login', headers=headers, data=data)
-    except Exception as e:
-        print(e)
+        response = requests.post(
+            'https://net-auth.shanghaitech.edu.cn:19008/portalauth/login',
+            headers=headers,
+            data=data,
+            timeout=request_timeout,
+        )
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"  Login request failed for {u_ip}: {e}")
         return False
 
     time.sleep(3)
     return testInternet()
 
-def getValidCode(u_ip:str) -> str:
+def getValidCode(u_ip: str) -> Optional[str]:
     refer_url = url_prefix + "?ac-ip={acip}&uaddress={uip}&umac=null&authType=1&lang=zh_CN&ssid={sid}&pushPageId={pid}".format(acip=ac_ip, uip=u_ip, sid=ssid, pid=pushPageId)
     timestamp = int(round(time.time() * 1000))
     # url = "https://net-auth.shanghaitech.edu.cn:19008/portalauth/verificationcode?date={t}&uaddress={uip}&umac=null&acip={acip}".format(t=timestamp,uip=u_ip,acip=ac_ip)
@@ -141,15 +152,34 @@ def getValidCode(u_ip:str) -> str:
     'acip': ac_ip,
 }
 
-    img_response = requests.get(
-    'https://net-auth.shanghaitech.edu.cn:19008/portalauth/verificationcode',
-    params=params,
-    headers=img_headers,
-)
+    try:
+        img_response = requests.get(
+            'https://net-auth.shanghaitech.edu.cn:19008/portalauth/verificationcode',
+            params=params,
+            headers=img_headers,
+            timeout=request_timeout,
+        )
+        img_response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"  Verification-code request failed for {u_ip}: {e}")
+        return None
 
     img = img_response.content
+    if not img:
+        print(f"  Verification-code response was empty for {u_ip}")
+        return None
+
     ocr.set_ranges(4)
-    validcode = ocr.classification(img)
+    try:
+        validcode = ocr.classification(img).strip()
+    except Exception as e:
+        print(f"  Verification-code OCR failed for {u_ip}: {e}")
+        return None
+
+    if not validcode:
+        print(f"  Verification-code OCR returned an empty result for {u_ip}")
+        return None
+
     # print(validcode)
     return validcode
 
