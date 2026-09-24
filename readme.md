@@ -132,18 +132,6 @@ All IP addresses successfully connected!
 
 ---
 
-## More / 更多
-
-See `update.md` for a short changelog and implementation notes.
-查看 `update.md` 获取更新日志和实现说明。
-
----
-
-If you want, I can also help generate a concise English-only description for the GitHub repository page (short description), or add a license file. 
-如需，我还可以帮你生成适合放到仓库简介（short description）的英文短句，或添加许可证文件。
-
----
-
 ## Requirements / 依赖
 
 - Python 3.8+ is recommended. / 建议使用 Python 3.8 及以上。
