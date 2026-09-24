@@ -69,6 +69,8 @@ coverage.xml
 
 # Logs
 *.log
+logs/
+.network-watchdog.lock
 
 # dotenv
 .env

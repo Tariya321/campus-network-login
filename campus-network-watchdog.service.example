@@ -1,0 +1,16 @@
+[Unit]
+Description=Campus Network Login Watchdog
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=YOUR_USER
+WorkingDirectory=/absolute/path/to/v3
+ExecStart=/absolute/path/to/v3/run_watchdog.sh
+Restart=on-failure
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

@@ -18,6 +18,50 @@ This repository contains a small Python script to automate campus network login.
 python WanLoginer.py
 ```
 
+## Watchdog / 断网监控
+
+The watchdog checks internet access every 30 seconds. After two consecutive failures, it runs `WanLoginer.py` once; it waits for the connection to recover before re-arming. The default log is `logs/network-watchdog.log`.
+
+watchdog 默认每 30 秒检查一次外网；连续失败两次后运行一次 `WanLoginer.py`，网络恢复后才会重新布防。默认日志位于 `logs/network-watchdog.log`。
+
+```bash
+./run_watchdog.sh
+```
+
+Useful options / 常用参数：
+
+```bash
+# Check every 20 seconds and trigger after one failure
+./run_watchdog.sh --interval 20 --failure-threshold 1
+
+# Use another URL to check connectivity
+./run_watchdog.sh --check-url https://example.com
+```
+
+The launcher uses `.venv/bin/python` when present, or `python3` otherwise. Create `config.ini` as described above before enabling automatic login.
+
+启动脚本优先使用项目内的 `.venv/bin/python`，否则使用 `python3`。启用自动登录前，请按上文配置 `config.ini`。
+
+### Run as a systemd service / 作为 systemd 服务运行
+
+Copy `campus-network-watchdog.service.example` to `/etc/systemd/system/campus-network-watchdog.service`. Edit `User`, `WorkingDirectory`, and `ExecStart` to match the account and absolute v3 directory on your machine, then enable the service:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now campus-network-watchdog.service
+sudo systemctl status campus-network-watchdog.service
+```
+
+Follow service output with `journalctl -u campus-network-watchdog.service -f`; the watchdog also writes to `logs/network-watchdog.log`.
+
+将 `campus-network-watchdog.service.example` 复制到 `/etc/systemd/system/campus-network-watchdog.service`，并按本机情况修改 `User`、`WorkingDirectory` 和 `ExecStart` 的绝对路径，然后启用服务。服务输出可通过 `journalctl -u campus-network-watchdog.service -f` 查看；watchdog 也会写入 `logs/network-watchdog.log`。
+
+### NAS task scheduler / NAS 任务计划
+
+For a NAS task scheduler, use the absolute path to this version's `run_watchdog.sh` as the startup command. The watchdog runs in the v3 directory and uses its `config.ini` and virtual environment.
+
+在 NAS 任务计划中，可将本版本 `run_watchdog.sh` 的绝对路径设为启动命令。watchdog 会在 v3 目录下运行，并使用该目录中的 `config.ini` 和虚拟环境。
+
 ---
 
 ## Configuration / 配置说明
@@ -46,6 +90,9 @@ Notes / 说明：
 
 - Automatic campus network login for one or multiple local IPs.
 - 支持针对单个或多个 IP 的自动登录。
+
+- Monitors internet connectivity and retries login once per outage.
+- 监控外网连接，并在每次断网时触发一次登录。
 
 - Uses OCR (ddddocr) to read the verification code when required.
 - 当需要验证码时，使用 `ddddocr` 进行识别。
