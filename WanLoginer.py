@@ -6,7 +6,7 @@ import time
 import ddddocr
 from typing import Optional
 
-ocr = ddddocr.DdddOcr(show_ad = False,beta=True)
+ocr = ddddocr.DdddOcr(show_ad=False)
 
 max_attempt = 5
 request_timeout = (5, 15)  # (connect timeout, read timeout), in seconds
@@ -169,7 +169,6 @@ def getValidCode(u_ip: str) -> Optional[str]:
         print(f"  Verification-code response was empty for {u_ip}")
         return None
 
-    ocr.set_ranges(4)
     try:
         validcode = ocr.classification(img).strip()
     except Exception as e:
